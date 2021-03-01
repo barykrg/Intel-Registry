@@ -1,0 +1,114 @@
+{
+	"name": "intelregistry",
+	"displayName": "Intel Registry",
+	"description": "Registry for Images hosted by Intel",
+	"version": "0.0.1",
+	"publisher": "barykrg",
+	"enableProposedApi": true,
+	"engines": {
+		"vscode": "^1.52.0"
+	},
+	"categories": [
+		"Other"
+	],
+	"activationEvents": [
+		"*"
+	],
+	"main": "./out/extension.js",
+	"contributes": {
+		"viewsContainers": {
+			"activitybar": [
+				{
+					"id": "package-explorer",
+					"title": "Intel Registry",
+					"icon": "$(globe)"
+				}
+			]
+		},
+		"views": {
+			"package-explorer": [
+				{
+					"id": "catalogue",
+					"name": "Intel Catalogue"
+				},
+				{
+					"id": "installedApplication",
+					"name": " Installed Applications"
+				}
+			]
+		},
+		"commands": [
+			{
+				"command": "intelregistry.refresh",
+				"title": "Test Refresh",
+				"icon": "$(refresh)"
+			},
+			{
+				"command": "intelregistry.pull",
+				"title": "Pull Image",
+				"icon": "$(add)"
+			},
+			{
+				"command": "intelregistry.run",
+				"title": "Run Image",
+				"icon": "$(globe)"
+			},
+			{
+				"command": "intelregistry.remove",
+				"title": "Remove Image",
+				"icon": "$(globe)"
+			}
+		],
+		"menus": {
+			"commandPalette": [
+			],
+			"view/title": [
+				{
+					"command": "intelregistry.refresh",
+					"when": "view == catalogue",
+					"group": "navigation"
+				}
+			],
+			"view/item/context": [
+				{
+					"command": "intelregistry.run",
+					"when": "view == installedApplication",
+					"group": "inline"
+				},
+				{
+					"command": "intelregistry.remove",
+					"when": "view == installedApplication ",
+					"group": "inline"
+				},
+				{
+					"command": "intelregistry.pull",
+					"when": "view == catalogue" ,
+					"group": "inline"
+				}
+			]
+		}
+	},
+	"scripts": {
+		"vscode:prepublish": "npm run compile",
+		"compile": "tsc -p ./",
+		"watch": "tsc -watch -p ./",
+		"lint": "eslint . --ext .ts,.tsx"
+	},
+	"devDependencies": {
+		"@types/mkdirp": "^0.5.2",
+		"@types/node": "^12.12.0",
+		"@types/rimraf": "^2.0.2",
+		"@types/vscode": "^1.45.0",
+		"typescript": "^4.0.2",
+		"@typescript-eslint/eslint-plugin": "^3.0.2",
+		"@typescript-eslint/parser": "^3.0.2",
+		"eslint": "^7.1.0"
+	},
+	"dependencies": {
+		"jsonc-parser": "^0.4.2",
+		"ftp": "^0.3.10",
+		"mkdirp": "^0.5.1",
+		"rimraf": "^2.6.2",
+		"minimist": "^0.2.1"
+	}
+}
