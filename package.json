@@ -21,7 +21,7 @@
 				{
 					"id": "package-explorer",
 					"title": "Intel Registry",
-					"icon": "$(globe)"
+					"icon": "$(server-environment)"
 				}
 			]
 		},
@@ -39,50 +39,59 @@
 		},
 		"commands": [
 			{
-				"command": "intelregistry.refresh",
+				"command": "intelregistry.refreshcatalogue",
 				"title": "Test Refresh",
 				"icon": "$(refresh)"
 			},
 			{
 				"command": "intelregistry.pull",
 				"title": "Pull Image",
-				"icon": "$(add)"
+				"icon": "$(cloud-download)"
 			},
 			{
-				"command": "intelregistry.run",
-				"title": "Run Image",
-				"icon": "$(globe)"
+				"command": "intelregistry.refreshdownload",
+				"title": "Refresh Downloads",
+				"icon": "$(refresh)"
 			},
 			{
-				"command": "intelregistry.remove",
-				"title": "Remove Image",
-				"icon": "$(globe)"
+				"command": "intelregistry.createEnvironment",
+				"title": "Create Development Environment",
+				"icon": "$(gear)"
+			},
+			{
+				"command": "intelregistry.add",
+				"title": "Add to development environment",
+				"icon": "$(plus)"
 			}
 		],
 		"menus": {
-			"commandPalette": [
-			],
+			"commandPalette": [],
 			"view/title": [
 				{
-					"command": "intelregistry.refresh",
+					"command": "intelregistry.refreshcatalogue",
 					"when": "view == catalogue",
+					"group": "navigation"
+				},
+				{
+					"command": "intelregistry.refreshdownload",
+					"when": "view == installedApplication",
 					"group": "navigation"
 				}
 			],
 			"view/item/context": [
 				{
-					"command": "intelregistry.run",
-					"when": "view == installedApplication",
-					"group": "inline"
-				},
-				{
-					"command": "intelregistry.remove",
-					"when": "view == installedApplication ",
+					"command": "intelregistry.createEnvironment",
+					"when": "view == installedApplication && viewItem==Image",
 					"group": "inline"
 				},
 				{
 					"command": "intelregistry.pull",
-					"when": "view == catalogue" ,
+					"when": "view == catalogue",
+					"group": "inline"
+				},
+				{
+					"command": "intelregistry.add",
+					"when": "view == installedApplication && viewItem==program",
 					"group": "inline"
 				}
 			]
@@ -110,5 +119,9 @@
 		"mkdirp": "^0.5.1",
 		"rimraf": "^2.6.2",
 		"minimist": "^0.2.1"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/barykrg/Intel-Registry.git"
 	}
 }

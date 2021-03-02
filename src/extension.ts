@@ -2,21 +2,21 @@
 
 import * as vscode from 'vscode';
 
-import * as cataloguetree from './installedApplicationtree';
+import * as cataloguetree from './cataloguetree';
 
-import * as installedapplicationtree from './containertree'
+import * as installedapplicationtree from './imagetree'
 
 export function activate(context: vscode.ExtensionContext) {
 
 	const catalogueImages = new cataloguetree.DepNodeProvider();
 	vscode.window.registerTreeDataProvider('catalogue', catalogueImages);
+	vscode.commands.registerCommand('intelregistry.refreshcatalogue', () => catalogueImages.refresh());
+	vscode.commands.registerCommand('intelregistry.pull', (item:cataloguetree.Dependency) => catalogueImages.pull(item));
+
 
 	const downloadedImages = new installedapplicationtree.DepNodeProvider();
 	vscode.window.registerTreeDataProvider('installedApplication', downloadedImages);
-
-
-	vscode.commands.registerCommand('intelregistry.refresh', () => catalogueImages.refresh());
-	vscode.commands.registerCommand('intelregistry.pull', () => catalogueImages.refresh());
-	vscode.commands.registerCommand('intelregistry.run', () => catalogueImages.refresh());
-	vscode.commands.registerCommand('intelregistry.remove', () => catalogueImages.refresh());
+	vscode.commands.registerCommand('intelregistry.refreshdownload', () => downloadedImages.refresh());
+	vscode.commands.registerCommand('intelregistry.createEnvironment',(item:installedapplicationtree.Dependency)=>downloadedImages.createEnvironment(item));
+	vscode.commands.registerCommand('intelregistry.add', (item:installedapplicationtree.Dependency) => downloadedImages.add(item));
 }

@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
+import * as child from 'child_process'; 
 
 export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 
@@ -20,7 +21,8 @@ export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 	getChildren(element?: Dependency): Thenable<Dependency[]> {
 		
 		//this.data=images;
-		return element?Promise.resolve([]):Promise.resolve(this.generate());
+		//return element?Promise.resolve([]):Promise.resolve(this.generate());
+		return Promise.resolve([new Dependency('openvino','docker pull openvino/ubuntu18_data_dev')]);
 
 	}
 	private generate():Dependency[]
@@ -28,7 +30,7 @@ export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 		const images:Dependency[]= [];
 		for(var image of this.getImage())
 		{
-			images.push(new Dependency(image['name'],vscode.TreeItemCollapsibleState.None,"this is tooltip"));
+			//images.push(new Dependency(image['name'],vscode.TreeItemCollapsibleState.None,"this is tooltip"));
 		}
 		return images;
 	}
@@ -39,17 +41,31 @@ export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 		console.log(data2);
 		return data2;
 	}
+	public pull(item:Dependency)
+	{
+		//vscode.window.showInformationMessage(item.buildCommand);
+		child.exec(item.buildCommand,(error)=>{
+			if(error)
+			{
+				vscode.window.showErrorMessage("Error while getting the application");
+			}
+		});
+	}
 
 }
 
 export class Dependency extends vscode.TreeItem {
-
+	children : Dependency[]|undefined;
 	constructor(
 		public readonly label: string,
-		public readonly collapsibleState: vscode.TreeItemCollapsibleState,
-		public tooltip?:string
+		public readonly buildCommand:string,
+		public tooltip?:string,
+		children?:Dependency[]
 	) {
-		super(label,collapsibleState);
+		super(label,
+			children===undefined ? vscode.TreeItemCollapsibleState.None:vscode.TreeItemCollapsibleState.Collapsed
+			);
+			this.children = children;
 
 	}
 
