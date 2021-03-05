@@ -21,6 +21,8 @@ export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 
 	 getChildren(element?: Dependency): vscode.ProviderResult<Dependency[]> {
 		const images:Dependency[]=[];
+		let data = JSON.parse(fs.readFileSync("src/file.json", 'utf-8'));
+		//console.log(data);
 		let current=this.getString();
 		//return element?Promise.resolve([]):Promise.resolve(this.generate());
 		for(let i of current)
@@ -30,7 +32,8 @@ export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 				images.push(new Dependency(i,'Image','.',[
 					new Dependency('c','','.',this.cSamples()),
 					new Dependency('cpp','','.',this.cppSamples()),
-					new Dependency('python','','.',this.pythonSamples())
+					new Dependency('python','','.',this.pythonSamples()),
+					new Dependency('Documentation','Documentation')
 					
 				]));
 			}
@@ -41,50 +44,57 @@ export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 	cSamples():Dependency[]|undefined{  
 		const csamples:Dependency[] = [];
 		
-		let arr:string[] = ['common','hello_classification','input_classification','object_detection_sample_ssd'];
-		for(let sample of arr)
-		{
-			csamples.push(new Dependency(sample,"program",'c'));
-		}
+		child.exec(`docker run openvino/ubuntu18_data_dev ls -F /opt/intel/openvino/inference_engine/samples/c`,(error,stdout,stderr)=>{
+			if(error)
+			{
+				return undefined;
+			}
+			//console.log(stdout);
+			let arr:string[] = stdout.split('\n').filter((item)=>{
+				return item.endsWith('/');
+			});
+			for(let sample of arr)
+			{
+				csamples.push(new Dependency(sample.substr(0,sample.length-1),"program",'c'));
+			}
+		});
 		return csamples;
 	}
 
 	cppSamples():Dependency[]|undefined{  
 		const cppsamples:Dependency[] = [];
 		
-		let arr:string[] = ['hello_query_device',
-			'benchmark_app',
-			'hello_reshape_ssd',
-			'ngraph_function_creation_sample',        
-			'object_detection_sample_ssd',
-			'classification_sample_async',     
-			'speech_sample',
-			'common',
-			'style_transfer_sample',
-			'hello_classification',
-			'thirdparty',
-			'hello_nv12_input_classification'
-			];
-		for(let sample of arr)
-		{
-			cppsamples.push(new Dependency(sample,"program",'cpp'));
-		}
+		child.exec(`docker run openvino/ubuntu18_data_dev ls -F /opt/intel/openvino/inference_engine/samples/cpp`,(error,stdout,stderr)=>{
+			if(error)
+			{
+				return undefined;
+			}
+			let arr:string[] = stdout.split('\n').filter((item)=>{
+				return item.endsWith('/');
+			});
+			for(let sample of arr)
+			{
+				cppsamples.push(new Dependency(sample.substr(0,sample.length-1),"program",'cpp'));
+			}
+		});
 		return cppsamples;
 	}
 	pythonSamples():Dependency[]|undefined{  
 		const pythonsamples:Dependency[] = [];
 		
-		let arr:string[] = ['classification_sample_async',
-		    'object_detection_sample_ssd',
-			'hello_classification',
-			'hello_query_device',
-			'style_transfer_sample',
-			'ngraph_function_creation_sample'
-			];
-		for(let sample of arr)
-		{
-			pythonsamples.push(new Dependency(sample,"program",'python'));
-		}
+		child.exec(`docker run openvino/ubuntu18_data_dev ls -F /opt/intel/openvino/inference_engine/samples/c`,(error,stdout,stderr)=>{
+			if(error)
+			{
+				return undefined;
+			}
+			let arr:string[] = stdout.split('\n').filter((item)=>{
+				return item.endsWith('/');
+			});
+			for(let sample of arr)
+			{
+				pythonsamples.push(new Dependency(sample.substr(0,sample.length-1),"program",'python'));
+			}
+		});
 		return pythonsamples;
 	}
 	public createEnvironment(item:Dependency)
@@ -103,7 +113,7 @@ export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 			let term = vscode.window.createTerminal("Docker Shell");
 			term.show(true);
 			term.sendText(`docker rm -f work`);
-			term.sendText(`docker run -it --name work -u 0 --rm --mount type=bind,source="${folderpath}",target=/opt/intel/openvino/myDir ${item.label}`,true);
+			term.sendText(`docker run -it --name work -u 0 --rm --mount type=bind,source="${folderpath}",target=/tmp ${item.label}`,true);
 		})
 		.then(undefined,err =>{vscode.window.showErrorMessage("Error while opening the folder"); return;});
 	}
@@ -135,7 +145,7 @@ export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 	private getImage()
 	{
 		var data2 = JSON.parse(fs.readFileSync("/home/barun/intelregistry/src/image.json", 'utf-8'));
-		console.log(data2);
+		//console.log(data2);
 		return data2;
 	}
 
@@ -144,7 +154,10 @@ export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 export class Dependency extends vscode.TreeItem {
 	children : Dependency[]|undefined;
 	constructor(
+		//public readonly name:string,
 		public readonly label: string,
+		//public readonly samples:string[],
+		//public readonly documentation,
 		public contextValue:string,
 		public parents?:string,
 		children?:Dependency[],
