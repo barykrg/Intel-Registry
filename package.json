@@ -2,7 +2,7 @@
 	"name": "intelregistry",
 	"displayName": "Intel Registry",
 	"description": "Registry for Images hosted by Intel",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"publisher": "barykrg",
 	"enableProposedApi": true,
 	"engines": {

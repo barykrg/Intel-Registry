@@ -21,82 +21,41 @@ export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 
 	 getChildren(element?: Dependency): vscode.ProviderResult<Dependency[]> {
 		const images:Dependency[]=[];
-		let data = JSON.parse(fs.readFileSync("src/file.json", 'utf-8'));
-		//console.log(data);
-		let current=this.getString();
-		//return element?Promise.resolve([]):Promise.resolve(this.generate());
-		for(let i of current)
-		{
-			if(i.toLowerCase().startsWith('openvino/ubuntu18_data_dev'))
-			{
-				images.push(new Dependency(i,'Image','.',[
-					new Dependency('c','','.',this.cSamples()),
-					new Dependency('cpp','','.',this.cppSamples()),
-					new Dependency('python','','.',this.pythonSamples()),
-					new Dependency('Documentation','Documentation')
-					
-				]));
-			}
-		}
-		//return element!==undefined?Promise.resolve(element.children):Promise.resolve(images);
+		images.push(new Dependency("","Sdks","","",this.getsdks()));
+		
 		return element!==undefined?element.children:images;
 	}
-	cSamples():Dependency[]|undefined{  
-		const csamples:Dependency[] = [];
-		
-		child.exec(`docker run openvino/ubuntu18_data_dev ls -F /opt/intel/openvino/inference_engine/samples/c`,(error,stdout,stderr)=>{
-			if(error)
+	getsdks():Dependency[]|undefined
+	{
+		const images:Dependency[]=[];
+		let data = JSON.parse(fs.readFileSync("src/file.json", 'utf-8'));
+		let map = new Map();
+		for(let sd of data.sdk)
+		{
+			map.set(sd.name,{label:sd.label,samples:sd.samples});
+		}
+		let current=this.getString();
+		for(let i of current)
+		{
+			if(map.has(i))
 			{
-				return undefined;
+				images.push(new Dependency(i,map.get(i).label,"Image",".",this.sampleProgram(i,map.get(i).samples,map.get(i).label)));
 			}
-			//console.log(stdout);
-			let arr:string[] = stdout.split('\n').filter((item)=>{
-				return item.endsWith('/');
-			});
-			for(let sample of arr)
-			{
-				csamples.push(new Dependency(sample.substr(0,sample.length-1),"program",'c'));
-			}
-		});
-		return csamples;
+		}
+		return images;
 	}
-
-	cppSamples():Dependency[]|undefined{  
-		const cppsamples:Dependency[] = [];
-		
-		child.exec(`docker run openvino/ubuntu18_data_dev ls -F /opt/intel/openvino/inference_engine/samples/cpp`,(error,stdout,stderr)=>{
-			if(error)
-			{
-				return undefined;
-			}
-			let arr:string[] = stdout.split('\n').filter((item)=>{
-				return item.endsWith('/');
-			});
-			for(let sample of arr)
-			{
-				cppsamples.push(new Dependency(sample.substr(0,sample.length-1),"program",'cpp'));
-			}
-		});
-		return cppsamples;
+	sampleProgram(image:string,path,label:string):Dependency[]|undefined{
+		const samples:Dependency[]=[];
+		if(path.length===0) return undefined;
+		for(let i of path)
+		{
+			let parent:string = i["link"].substr(i["link"].lastIndexOf('/')+1);
+			samples.push(new Dependency(label+","+i["link"],parent,"program"));
+		}
+		return samples;
 	}
-	pythonSamples():Dependency[]|undefined{  
-		const pythonsamples:Dependency[] = [];
-		
-		child.exec(`docker run openvino/ubuntu18_data_dev ls -F /opt/intel/openvino/inference_engine/samples/c`,(error,stdout,stderr)=>{
-			if(error)
-			{
-				return undefined;
-			}
-			let arr:string[] = stdout.split('\n').filter((item)=>{
-				return item.endsWith('/');
-			});
-			for(let sample of arr)
-			{
-				pythonsamples.push(new Dependency(sample.substr(0,sample.length-1),"program",'python'));
-			}
-		});
-		return pythonsamples;
-	}
+	
+	
 	public createEnvironment(item:Dependency)
 	{
 		vscode.window.showOpenDialog({canSelectFolders:true})
@@ -108,19 +67,24 @@ export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 				return;
 			}
 			let folderpath = folder[0].fsPath;
-			//vscode.window.showInformationMessage(folderpath);
+			
 			vscode.workspace.updateWorkspaceFolders(0,0,{uri:vscode.Uri.file(folderpath)});
 			let term = vscode.window.createTerminal("Docker Shell");
 			term.show(true);
-			term.sendText(`docker rm -f work`);
-			term.sendText(`docker run -it --name work -u 0 --rm --mount type=bind,source="${folderpath}",target=/tmp ${item.label}`,true);
+			term.sendText(`docker rm -f ${item.label}`);
+			//console.log(`docker run -it --name ${item.label} -u 0 --rm --mount type=bind,source="${folderpath}",target=/tmp ${item.label}`);
+			term.sendText(`docker run -it --name ${item.label} -u 0 --rm --mount type=bind,source="${folderpath}",target=/tmp ${item.name}`,true);
 		})
 		.then(undefined,err =>{vscode.window.showErrorMessage("Error while opening the folder"); return;});
 	}
 	public add(item:Dependency)
 	{
-		//vscode.window.showInformationMessage(`docker exec work cp -r /opt/intel/openvino/inference_engine/samples/${item.parents}/${item.label} /opt/intel/openvino/myDir/${item.label}`);
-		child.exec(`docker exec work cp -r /opt/intel/openvino/inference_engine/samples/${item.parents}/${item.label} /opt/intel/openvino/myDir/${item.parents}`,(error)=>{
+		const arr = item.name.split(',');
+		//console.log(arr);
+		//console.log(`docker exec ${arr[0]} cp -r ${arr[1]}/${item.label} /tmp/${item.parents}`);
+
+		console.log(`docker exec ${arr[0]} cp -r ${arr[1]} /tmp`);
+		child.exec(`docker exec ${arr[0]} cp -r ${arr[1]} /tmp`,(error)=>{
 			if(error)
 			{
 				vscode.window.showErrorMessage("Please create development environment first");
@@ -128,25 +92,10 @@ export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 			}
 		});
 	}
-	private generate():Dependency[]
-	{
-		const images:Dependency[]= [];
-		for(var image of this.getImage())
-		{
-			//images.push(new Dependency(image['name'],vscode.TreeItemCollapsibleState.None,"this is tooltip"));
-		}
-		return images;
-
-	}
+	
 	private getString():string[]{
 		return child.execSync(`docker images --format "{{.Repository}}"`,{encoding:"utf8"}).split('\n');
 		//return "";
-	}
-	private getImage()
-	{
-		var data2 = JSON.parse(fs.readFileSync("/home/barun/intelregistry/src/image.json", 'utf-8'));
-		//console.log(data2);
-		return data2;
 	}
 
 }
@@ -154,10 +103,8 @@ export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 export class Dependency extends vscode.TreeItem {
 	children : Dependency[]|undefined;
 	constructor(
-		//public readonly name:string,
+		public readonly name:string,
 		public readonly label: string,
-		//public readonly samples:string[],
-		//public readonly documentation,
 		public contextValue:string,
 		public parents?:string,
 		children?:Dependency[],

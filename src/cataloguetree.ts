@@ -57,6 +57,7 @@ export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 	public pull(item:Dependency)
 	{
 		//vscode.window.showInformationMessage(item.buildCommand);
+		//vscode.window.showInformationMessage(`docker pull ${item.name}`);
 		child.exec(`docker pull ${item.name}`,(error)=>{
 			if(error)
 			{
