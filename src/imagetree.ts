@@ -147,8 +147,9 @@ export class Dependency extends vscode.TreeItem {
 	constructor(
 		public readonly label: string,
 		public contextValue:string,
-		public metaData : {documentation?:string,path?:string,name?:string},
+		public metaData ?: {documentation?:string,path?:string,name?:string},
 		children?:Dependency[]
+		
 		
 	) {
 		super(label,
