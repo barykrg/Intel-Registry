@@ -1,6 +1,8 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as child from 'child_process';
+import * as inputs from './inputs';
+import { stderr, stdout } from 'process';
 
 export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 
@@ -21,40 +23,78 @@ export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 
 	 getChildren(element?: Dependency): vscode.ProviderResult<Dependency[]> {
 		const images:Dependency[]=[];
-		images.push(new Dependency("","Sdks","","",this.getsdks()));
+		const sdks = this.getsdks();
+		//const ris = this.getris();
+
+		images.push(new Dependency("Sdks","sdks",{},sdks));
+		//images.push(new Dependency("Reference Implementation","ris",{},ris));
 		
-		return element!==undefined?element.children:images;
+		return element===undefined?images:element.children;
 	}
-	getsdks():Dependency[]|undefined
+	runDemo(item:Dependency)
 	{
-		const images:Dependency[]=[];
-		let data = JSON.parse(fs.readFileSync("src/file.json", 'utf-8'));
-		let map = new Map();
-		for(let sd of data.sdk)
+		let term =vscode.window.createTerminal("Demo");
+		term.show(true);
+		term.sendText(item.metaData.documentation);
+	}
+	getsdks():Dependency[]
+	{
+		let data = inputs.global;
+		let sdks:Dependency[]=[];
+		let onSystem = new Set(this.getString());
+		for(let i of data.sdk)
 		{
-			map.set(sd.name,{label:sd.label,samples:sd.samples});
-		}
-		let current=this.getString();
-		for(let i of current)
-		{
-			if(map.has(i))
+			if(onSystem.has(i.name))
 			{
-				images.push(new Dependency(i,map.get(i).label,"Image",".",this.sampleProgram(i,map.get(i).samples,map.get(i).label)));
+				let sdksSampleFolder:Dependency[]=[];
+				for(let j of i.samples)
+				{
+					let sdksSample:Dependency[]=[];
+					for(let k of this.getSamples(i.name,j))
+					{
+						
+						sdksSample.push(new Dependency(k.substr(k.lastIndexOf('/')+1),
+						"sample",
+						{documentation:"",path:k,name:i.label}));
+					}
+					sdksSampleFolder.push(new Dependency(j.substr(j.lastIndexOf('/')+1),"sampleFolder",{},[...sdksSample]));
+				}
+				let sdksDemoFolder:Dependency[]=[];
+				let sdksDemo:Dependency[]=[];
+				for(let j of i.demos)
+				{
+					sdksDemo.push(new Dependency(j.name,"demo",{documentation:j.command}));
+				}
+				sdksDemoFolder.push(new Dependency("Demos","DemoFolder",{},[...sdksDemo]));
+				sdksDemoFolder=sdksDemoFolder.concat(sdksSampleFolder);
+				sdks.push(new Dependency(i.label,"image",{documentation:i.documentation,path:"",name:i.name},[...sdksDemoFolder]));
 			}
 		}
-		return images;
+		return sdks;
 	}
-	sampleProgram(image:string,path,label:string):Dependency[]|undefined{
-		const samples:Dependency[]=[];
-		if(path.length===0) return undefined;
-		for(let i of path)
-		{
-			let parent:string = i["link"].substr(i["link"].lastIndexOf('/')+1);
-			samples.push(new Dependency(label+","+i["link"],parent,"program"));
-		}
-		return samples;
+	 getSamples(name:string,path:string):string[]
+	{
+		if(path.length===0) return [];
+		const m = {"c":["common","hello_classification","hello_nv12_input_classification","object_detection_sample_ssd"],"cpp":["benchmark_app","classification_sample_async","common","hello_classification","hello_nv12_input_classification","hello_reshape_ssd"],"python":["classification_sample_async","hello_classification","hello_query_device","object_detection_sample_ssd","ngraph_function_creation_sample"]};
+		 //let test = child.execSync(`docker run --rm ${name} ls -F ${path}`);
+		 
+		 //let test = "common/ \nhelloWorld/";
+		 /*
+		 let arr:string []= test.toString().split('\n').filter((item)=>{
+				return item.endsWith('/');
+			});
+		arr = arr.map((data)=> {return path+"/"+data.slice(0,-1);});
+		console.log(arr);
+		return arr;
+		*/
+		let parent = path.substr(path.lastIndexOf('/')+1);
+		//console.log(parent);
+		//console.log(m[parent]);
+		let arr = m[parent].map((data)=>{ return path+"/"+data});
+		//console.log(arr);		
+		return arr;
+
 	}
-	
 	
 	public createEnvironment(item:Dependency)
 	{
@@ -72,25 +112,27 @@ export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 			let term = vscode.window.createTerminal("Docker Shell");
 			term.show(true);
 			term.sendText(`docker rm -f ${item.label}`);
-			//console.log(`docker run -it --name ${item.label} -u 0 --rm --mount type=bind,source="${folderpath}",target=/tmp ${item.label}`);
-			term.sendText(`docker run -it --name ${item.label} -u 0 --rm --mount type=bind,source="${folderpath}",target=/tmp ${item.name}`,true);
+			console.log(`docker run -it --name ${item.label} -u 0 --rm --mount type=bind,source="${folderpath}",target=/tmp ${item.metaData.name}`);
+			//term.sendText(`docker run -it --name ${item.label} -u 0 --rm --mount type=bind,source="${folderpath}",target=/tmp ${item.metaData.name}`,true);
 		})
 		.then(undefined,err =>{vscode.window.showErrorMessage("Error while opening the folder"); return;});
 	}
 	public add(item:Dependency)
 	{
-		const arr = item.name.split(',');
+		
+		
 		//console.log(arr);
 		//console.log(`docker exec ${arr[0]} cp -r ${arr[1]}/${item.label} /tmp/${item.parents}`);
 
-		console.log(`docker exec ${arr[0]} cp -r ${arr[1]} /tmp`);
+		console.log(`docker exec ${item.metaData.name} cp -r ${item.metaData.path} /tmp`);
+		/*
 		child.exec(`docker exec ${arr[0]} cp -r ${arr[1]} /tmp`,(error)=>{
 			if(error)
 			{
 				vscode.window.showErrorMessage("Please create development environment first");
 				return;
 			}
-		});
+		});*/
 	}
 	
 	private getString():string[]{
@@ -103,17 +145,17 @@ export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 export class Dependency extends vscode.TreeItem {
 	children : Dependency[]|undefined;
 	constructor(
-		public readonly name:string,
 		public readonly label: string,
 		public contextValue:string,
-		public parents?:string,
-		children?:Dependency[],
+		public metaData : {documentation?:string,path?:string,name?:string},
+		children?:Dependency[]
 		
 	) {
 		super(label,
 			children===undefined ? vscode.TreeItemCollapsibleState.None:vscode.TreeItemCollapsibleState.Collapsed
 			);
 			this.children = children;
+		
 
 	}
 

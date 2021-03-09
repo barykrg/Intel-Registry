@@ -67,6 +67,11 @@
 				"command": "intelregistry.readme",
 				"title": "Open Official Documentations",
 				"icon": "$(book)"
+			},
+			{
+				"command": "intelregistry.runDemo",
+				"title": "Run Demo",
+				"icon": "$(play)"
 			}
 		],
 		"menus": {
@@ -86,7 +91,7 @@
 			"view/item/context": [
 				{
 					"command": "intelregistry.createEnvironment",
-					"when": "view == installedApplication && viewItem==Image",
+					"when": "view == installedApplication && viewItem==image",
 					"group": "inline"
 				},
 				{
@@ -96,12 +101,17 @@
 				},
 				{
 					"command": "intelregistry.add",
-					"when": "view == installedApplication && viewItem==program",
+					"when": "view == installedApplication && viewItem==sample",
 					"group": "inline"
 				},
 				{
 					"command": "intelregistry.readme",
 					"when": "view == catalog && viewItem==Image",
+					"group": "inline"
+				},
+				{
+					"command": "intelregistry.runDemo",
+					"when": "view == installedApplication && viewItem==demo",
 					"group": "inline"
 				}
 			]

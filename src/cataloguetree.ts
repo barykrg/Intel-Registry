@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as child from 'child_process'; 
+import * as inputs from './inputs';
 
 export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 
@@ -25,7 +26,7 @@ export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 		//let data = JSON.parse(fs.readFileSync("src/file.json", 'utf-8'));
 		const images:Dependency[]=[];
 		images.push(new Dependency("","Reference Implementations","","",this.getRI()));
-		images.push(new Dependency("","sdks","","",this.getdks()));
+		images.push(new Dependency("","Sdks","","",this.getdks()));
 		//images.push(this.getdks());
 		//console.log(images);
 		return element===undefined?images:element.children;
@@ -33,7 +34,7 @@ export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 	}
 	getdks():Dependency[]|undefined
 	{
-		let data = JSON.parse(fs.readFileSync("src/file.json", 'utf-8'));
+		let data = inputs.global;
 		const sdks:Dependency[]=[];
 		//console.log(data.sdk);
 		for(let sd of data.sdk)
@@ -45,7 +46,7 @@ export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 	}
 	getRI():Dependency[]|undefined
 	{
-		let data = JSON.parse(fs.readFileSync("src/file.json", 'utf-8'));
+		let data = inputs.global;
 		const ris:Dependency[]=[];
 		//console.log(data.sdk);
 		for(let ri of data.reference_Implementations)
