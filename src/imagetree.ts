@@ -112,7 +112,7 @@ export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 			let term = vscode.window.createTerminal("Docker Shell");
 			term.show(true);
 			term.sendText(`docker rm -f ${item.label}`);
-			console.log(`docker run -it --name ${item.label} -u 0 --rm --mount type=bind,source="${folderpath}",target=/tmp ${item.metaData.name}`);
+			//console.log(`docker run -it --name ${item.label} -u 0 --rm --mount type=bind,source="${folderpath}",target=/tmp ${item.metaData.name}`);
 			term.sendText(`docker run -it --name ${item.label} -u 0 --rm --mount type=bind,source="${folderpath}",target=/tmp ${item.metaData.name}`,true);
 		})
 		.then(undefined,err =>{vscode.window.showErrorMessage("Error while opening the folder"); return;});
@@ -124,15 +124,15 @@ export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 		//console.log(arr);
 		//console.log(`docker exec ${arr[0]} cp -r ${arr[1]}/${item.label} /tmp/${item.parents}`);
 
-		console.log(`docker exec ${item.metaData.name} cp -r ${item.metaData.path} /tmp`);
-		/*
-		child.exec(`docker exec ${arr[0]} cp -r ${arr[1]} /tmp`,(error)=>{
+		//console.log(`docker exec ${item.metaData.name} cp -r ${item.metaData.path} /tmp`);
+		
+		child.exec(`docker exec ${item.metaData.name} cp -r ${item.metaData.path} /tmp`,(error)=>{
 			if(error)
 			{
 				vscode.window.showErrorMessage("Please create development environment first");
 				return;
 			}
-		});*/
+		});
 	}
 	
 	private getString():string[]{
