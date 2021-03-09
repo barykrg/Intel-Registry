@@ -113,7 +113,7 @@ export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 			term.show(true);
 			term.sendText(`docker rm -f ${item.label}`);
 			console.log(`docker run -it --name ${item.label} -u 0 --rm --mount type=bind,source="${folderpath}",target=/tmp ${item.metaData.name}`);
-			//term.sendText(`docker run -it --name ${item.label} -u 0 --rm --mount type=bind,source="${folderpath}",target=/tmp ${item.metaData.name}`,true);
+			term.sendText(`docker run -it --name ${item.label} -u 0 --rm --mount type=bind,source="${folderpath}",target=/tmp ${item.metaData.name}`,true);
 		})
 		.then(undefined,err =>{vscode.window.showErrorMessage("Error while opening the folder"); return;});
 	}
