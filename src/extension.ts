@@ -18,7 +18,7 @@ export function activate(context: vscode.ExtensionContext) {
 	vscode.commands.registerCommand('intelregistry.refreshcatalogue', () => catalogueImages.refresh());
 	vscode.commands.registerCommand('intelregistry.pull', (item:cataloguetree.Dependency) => catalogueImages.pull(item));
 	vscode.commands.registerCommand('intelregistry.readme', (item:cataloguetree.Dependency) => catalogueImages.readme(item));
-	vscode.commands.registerCommand('intelregistry.login', (item:cataloguetree.Dependency) => catalogueImages.logon(item));
+	//vscode.commands.registerCommand('intelregistry.login', (item:cataloguetree.Dependency) => catalogueImages.logon(item));
 
 
 

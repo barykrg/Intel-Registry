@@ -7,7 +7,6 @@ export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 
 	private _onDidChangeTreeData: vscode.EventEmitter<Dependency | undefined | void> = new vscode.EventEmitter<Dependency | undefined | void>();
 	readonly onDidChangeTreeData: vscode.Event<Dependency | undefined | void> = this._onDidChangeTreeData.event;
-	private login:boolean = false;
 	constructor() {
 	}
 
@@ -23,11 +22,7 @@ export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 		
 		const images:Dependency[]=[];
 		let ris :Dependency[]=[];
-		if(this.login)
-		{
-			ris = this.getRI();
-		}
-		images.push(new Dependency("","Reference Implementation","","",ris));
+		images.push(new Dependency("","Reference Implementation","","",this.getRI()));
 		images.push(new Dependency("","Sdks","","",this.getdks()));
 		return element===undefined?images:element.children;
 
@@ -72,17 +67,24 @@ export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 		const passwd = await vscode.window.showInputBox({prompt:"Eneter password",password:true});
 		if(username==="test" && passwd==="test")
 		{
-			this.login = true;
 			this._onDidChangeTreeData.fire();
 		}
 	}
-	public pull(item:Dependency)
+	public async pull(item:Dependency)
 	{
 		//vscode.window.showInformationMessage(item.buildCommand);
 		//vscode.window.showInformationMessage(`docker pull ${item.name}`);
 		if(item.name.split(',').length>1)
 		{
-			vscode.window.showInformationMessage(`This is a dummy Pull of ${item.name}`);
+			const username =await vscode.window.showInputBox({prompt:"Enter Username"});
+			const passwd = await vscode.window.showInputBox({prompt:"Eneter password",password:true});
+			if(username==="test" && passwd==="test")
+			{
+				vscode.window.showInformationMessage(`This is a dummy Pull of ${item.name}`);
+			}
+			else{
+				vscode.window.showErrorMessage(`Login Failed`);
+			}
 			return;
 		}
 		child.exec(`docker pull ${item.name}`,(error)=>{
