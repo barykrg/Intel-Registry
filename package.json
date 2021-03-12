@@ -72,6 +72,11 @@
 				"command": "intelregistry.runDemo",
 				"title": "Run Demo",
 				"icon": "$(play)"
+			},
+			{
+				"command": "intelregistry.login",
+				"title": "login",
+				"icon": "$(log-in)"
 			}
 		],
 		"menus": {
@@ -85,6 +90,11 @@
 				{
 					"command": "intelregistry.refreshdownload",
 					"when": "view == installedApplication",
+					"group": "navigation"
+				},
+				{
+					"command": "intelregistry.login",
+					"when": "view == catalog",
 					"group": "navigation"
 				}
 			],

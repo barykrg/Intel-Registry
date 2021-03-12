@@ -7,7 +7,7 @@ export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 
 	private _onDidChangeTreeData: vscode.EventEmitter<Dependency | undefined | void> = new vscode.EventEmitter<Dependency | undefined | void>();
 	readonly onDidChangeTreeData: vscode.Event<Dependency | undefined | void> = this._onDidChangeTreeData.event;
-
+	private login:boolean = false;
 	constructor() {
 	}
 
@@ -22,11 +22,17 @@ export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 	getChildren(element?: Dependency): vscode.ProviderResult<Dependency[]>{
 		
 		const images:Dependency[]=[];
-		images.push(new Dependency("","Reference Implementation","","",this.getRI()));
+		let ris :Dependency[]=[];
+		if(this.login)
+		{
+			ris = this.getRI();
+		}
+		images.push(new Dependency("","Reference Implementation","","",ris));
 		images.push(new Dependency("","Sdks","","",this.getdks()));
 		return element===undefined?images:element.children;
 
 	}
+	
 	getdks():Dependency[]|undefined
 	{
 		let data = inputs.global;
@@ -59,6 +65,16 @@ export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 			ris.push(new Dependency(map.get(i).join(","),i,"https://www.google.com","Image"));
 		}
 		return ris.length===0?undefined:ris;
+	}
+	public async logon(item:Dependency)
+	{
+		const username =await vscode.window.showInputBox({prompt:"Enter Username"});
+		const passwd = await vscode.window.showInputBox({prompt:"Eneter password",password:true});
+		if(username==="test" && passwd==="test")
+		{
+			this.login = true;
+			this._onDidChangeTreeData.fire();
+		}
 	}
 	public pull(item:Dependency)
 	{
