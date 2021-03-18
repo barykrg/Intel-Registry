@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as child from 'child_process';
 import * as inputs from './inputs';
+import * as path from 'path';
 import { stderr, stdout } from 'process';
 
 export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
@@ -59,7 +60,7 @@ export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 			let risImage:Dependency[]=[];
 			for(let j of map.get(i))
 			{
-				risImage.push(new Dependency(j,"ris"));
+				risImage.push(new Dependency(j,"risimage"));
 			}
 			ris.push(new Dependency(i,"image",{},[...risImage]));
 		}
@@ -127,7 +128,7 @@ export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 	{
 		if(item.metaData.name===undefined)
 		{
-			vscode.window.showInformationMessage("Dummy Run");
+			vscode.window.showInformationMessage(`Running ${item.label}`);
 			return;
 		}
 		vscode.window.showOpenDialog({canSelectFolders:true})
@@ -170,7 +171,7 @@ export class Dependency extends vscode.TreeItem {
 	children : Dependency[]|undefined;
 	constructor(
 		public readonly label: string,
-		public contextValue:string,
+		public readonly contextValue:string,
 		public metaData ?: {documentation?:string,path?:string,name?:string},
 		children?:Dependency[]
 		
@@ -183,6 +184,8 @@ export class Dependency extends vscode.TreeItem {
 		
 
 	}
+	iconPath = (this.contextValue=="samples"||this.contextValue=="risimage"||this.contextValue=="demo")?path.join(__filename,'..',"..",'media','package.svg'):
+	path.join(__filename,'..',"..",'media','folder.svg');
 
 }
 

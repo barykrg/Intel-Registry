@@ -1,13 +1,17 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
+import * as path from 'path';
 import * as child from 'child_process'; 
 import * as inputs from './inputs';
+import { pathToFileURL } from 'url';
 
 export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
-
 	private _onDidChangeTreeData: vscode.EventEmitter<Dependency | undefined | void> = new vscode.EventEmitter<Dependency | undefined | void>();
 	readonly onDidChangeTreeData: vscode.Event<Dependency | undefined | void> = this._onDidChangeTreeData.event;
 	constructor() {
+		console.log("----------");
+		console.log(path.join(__filename,'..',"..",'media','code.svg'));
+		console.log("----------");
 	}
 
 	refresh(): void {
@@ -21,7 +25,6 @@ export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 	getChildren(element?: Dependency): vscode.ProviderResult<Dependency[]>{
 		
 		const images:Dependency[]=[];
-		let ris :Dependency[]=[];
 		images.push(new Dependency("","Reference Implementation","","",this.getRI()));
 		images.push(new Dependency("","Sdks","","",this.getdks()));
 		return element===undefined?images:element.children;
@@ -47,11 +50,11 @@ export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 		{
 			if(!map.has(ri.name.en))
 			{
-				map.set(ri.name.en,[ri.image]);
+				map.set(ri.name.en,[ri.image+ri.tag]);
 			}
 			else
 			{
-				map.set(ri.name.en,map.get(ri.name.en).concat([ri.image]));
+				map.set(ri.name.en,map.get(ri.name.en).concat([ri.image+ri.tag]));
 			}
 		}
 		for(let i of map.keys())
@@ -80,7 +83,10 @@ export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 			const passwd = await vscode.window.showInputBox({prompt:"Eneter password",password:true});
 			if(username==="test" && passwd==="test")
 			{
-				vscode.window.showInformationMessage(`This is a dummy Pull of ${item.name}`);
+				for(let i of item.name.split(',')){
+					vscode.window.showInformationMessage(`${i} pull successfull`);
+				}
+				
 			}
 			else{
 				vscode.window.showErrorMessage(`Login Failed`);
@@ -118,5 +124,6 @@ export class Dependency extends vscode.TreeItem {
 			this.children = children;
 
 	}
-
+	iconPath = this.contextValue=="Image"?path.join(__filename,'..',"..",'media','desktop-download.svg'):
+	path.join(__filename,'..',"..",'media','folder.svg');
 }
